@@ -1,5 +1,9 @@
+Code.require_file("coverage.ignore.exs")
+
 defmodule QcxControl.MixProject do
   use Mix.Project
+
+  alias QcxControl.Coverage
 
   @app :qcx_control
   @version "0.1.0"
@@ -23,10 +27,17 @@ defmodule QcxControl.MixProject do
         plt_add_apps: [:mix],
         plt_file: {:no_warn, plt_file_path()}
       ],
+      test_coverage: [
+        tool: Coverex.Task,
+        ignore_modules: Coverage.ignore_modules()
+      ],
       preferred_cli_target: [
         dialyzer: :rpi0,
         run: :host,
         test: :host
+      ],
+      preferred_cli_env: [
+        espec: :test
       ]
     ]
   end
@@ -41,7 +52,9 @@ defmodule QcxControl.MixProject do
 
   defp aliases do
     [
-      "docs.show": ["docs", open("doc/index.html")]
+      "coverage.show": [open("cover/modules.html")],
+      "docs.show": ["docs", open("doc/index.html")],
+      test: "espec --cover"
     ]
   end
 
@@ -49,7 +62,9 @@ defmodule QcxControl.MixProject do
   defp deps do
     [
       # Dependencies for all targets
+      {:coverex, "~> 1.5", only: :test},
       {:dialyxir, "~> 1.1", only: :dev, runtime: false},
+      {:espec, "~> 1.8", only: :test},
       {:ex_doc, "~> 0.25", only: :dev, runtime: false},
       {:nerves, "~> 1.7", runtime: false},
       {:shoehorn, "~> 0.7"},

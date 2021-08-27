@@ -23,6 +23,31 @@ jobs:
         run: mix format --check-formatted
         working-directory: firmware
 
+  unit_tests:
+    name: Unit Tests
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: "24.0"
+          elixir-version: "1.12.1"
+      - name: Install Nerves bootstrap
+        run: mix archive.install --force hex nerves_bootstrap
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Get dependencies
+        run: mix deps.get
+        working-directory: firmware
+      - name: Compile
+        run: mix compile
+        working-directory: firmware
+        env:
+          MIX_ENV: test
+      - name: Run unit tests
+        run: mix test
+        working-directory: firmware
+
   type_check:
     name: Type Check
     runs-on: ubuntu-20.04
