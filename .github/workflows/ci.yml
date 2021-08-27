@@ -1,0 +1,24 @@
+on:
+  - push
+  - pull_request
+
+jobs:
+  code_formatting:
+    name: Code Formatting
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: "24.0"
+          elixir-version: "1.12.1"
+      - name: Install Nerves bootstrap
+        run: mix archive.install --force hex nerves_bootstrap
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Get dependencies
+        run: mix deps.get
+        working-directory: firmware
+      - name: Check code formatting
+        run: mix format --check-formatted
+        working-directory: firmware
