@@ -22,3 +22,48 @@ jobs:
       - name: Check code formatting
         run: mix format --check-formatted
         working-directory: firmware
+
+  type_check:
+    name: Type Check
+    runs-on: ubuntu-20.04
+    env:
+      MIX_TARGET: rpi0
+    steps:
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: "24.0"
+          elixir-version: "1.12.1"
+      - name: Install Nerves bootstrap
+        run: mix archive.install --force hex nerves_bootstrap
+      - name: Restore Nerves artifacts
+        uses: actions/cache@v1
+        with:
+          path: ~/.nerves/artifacts
+          key: nerves-artifacts-${{ github.ref }}-${{ github.sha }}
+          restore-keys: |
+            nerves-artifacts-${{ github.ref }}-${{ github.sha }}
+            nerves-artifacts-${{ github.ref }}-
+            nerves-artifacts-refs/heads/master-
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Create bogus SSH key
+        run: mkdir -p ~/.ssh; echo "bogus" > ~/.ssh/id_rsa.pub
+      - name: Get dependencies
+        run: mix deps.get
+        working-directory: firmware
+      - name: Restore PLTs
+        uses: actions/cache@v1
+        with:
+          path: firmware/_build/${{ env.MIX_TARGET }}_dev/plt
+          key: plt-${{ github.ref }}-${{ github.sha }}
+          restore-keys: |
+            plt-${{ github.ref }}-${{ github.sha }}
+            plt-${{ github.ref }}-
+            plt-refs/heads/master-
+      - name: Compile
+        run: mix compile
+        working-directory: firmware
+      - name: Run dialyzer
+        run: mix dialyzer
+        working-directory: firmware

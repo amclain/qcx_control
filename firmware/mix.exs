@@ -15,7 +15,17 @@ defmodule QcxControl.MixProject do
       build_embedded: true,
       deps: deps(),
       releases: [{@app, release()}],
-      preferred_cli_target: [run: :host, test: :host]
+      dialyzer: [
+        ignore_warnings: "dialyzer.ignore-warnings.exs",
+        list_unused_filters: true,
+        plt_add_apps: [:mix],
+        plt_file: {:no_warn, plt_file_path()}
+      ],
+      preferred_cli_target: [
+        dialyzer: :rpi0,
+        run: :host,
+        test: :host
+      ]
     ]
   end
 
@@ -31,6 +41,7 @@ defmodule QcxControl.MixProject do
   defp deps do
     [
       # Dependencies for all targets
+      {:dialyxir, "~> 1.1", only: :dev, runtime: false},
       {:nerves, "~> 1.7", runtime: false},
       {:shoehorn, "~> 0.7"},
       {:ring_logger, "~> 0.8"},
@@ -55,5 +66,12 @@ defmodule QcxControl.MixProject do
       steps: [&Nerves.Release.init/1, :assemble],
       strip_beams: Mix.env() == :prod or [keep: ["Docs"]]
     ]
+  end
+
+  # Path to the dialyzer .plt file.
+  defp plt_file_path do
+    [Mix.Project.build_path(), "plt", "dialyxir.plt"]
+    |> Path.join()
+    |> Path.expand()
   end
 end
