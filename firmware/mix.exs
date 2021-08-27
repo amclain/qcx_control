@@ -13,7 +13,9 @@ defmodule QcxControl.MixProject do
       archives: [nerves_bootstrap: "~> 1.10"],
       start_permanent: Mix.env() == :prod,
       build_embedded: true,
+      aliases: aliases(),
       deps: deps(),
+      docs: docs(),
       releases: [{@app, release()}],
       dialyzer: [
         ignore_warnings: "dialyzer.ignore-warnings.exs",
@@ -37,11 +39,18 @@ defmodule QcxControl.MixProject do
     ]
   end
 
+  defp aliases do
+    [
+      "docs.show": ["docs", open("doc/index.html")]
+    ]
+  end
+
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
       # Dependencies for all targets
       {:dialyxir, "~> 1.1", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.25", only: :dev, runtime: false},
       {:nerves, "~> 1.7", runtime: false},
       {:shoehorn, "~> 0.7"},
       {:ring_logger, "~> 0.8"},
@@ -53,6 +62,13 @@ defmodule QcxControl.MixProject do
 
       # Dependencies for specific targets
       {:nerves_system_rpi0, "~> 1.16", runtime: false, targets: :rpi0}
+    ]
+  end
+
+  defp docs do
+    [
+      main: "readme",
+      extras: ["../README.md"]
     ]
   end
 
@@ -73,5 +89,21 @@ defmodule QcxControl.MixProject do
     [Mix.Project.build_path(), "plt", "dialyxir.plt"]
     |> Path.join()
     |> Path.expand()
+  end
+
+  defp open(path) do
+    fn _args ->
+      System.cmd(open_command(), [path])
+    end
+  end
+
+  defp open_command do
+    cond do
+      # Linux
+      !is_nil(System.find_executable("xdg-open")) -> "xdg-open"
+      # Mac
+      !is_nil(System.find_executable("open")) -> "open"
+      true -> raise "Could not find executable 'open' or 'xdg-open'"
+    end
   end
 end
